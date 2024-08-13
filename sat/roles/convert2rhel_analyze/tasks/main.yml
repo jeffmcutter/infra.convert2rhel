@@ -1,0 +1,51 @@
+---
+- name: Generate pre-conversion analysis report
+  vars:
+    rhsm_username: ""
+    rhsm_password: ""
+    rhsm_org: ""
+    rhsm_activation_key: ""
+    analysis_no_rhsm: false
+    common_convert2rhel_repo_satellite: true
+    common_centos7_repos: [] # noqa: var-naming[no-role-prefix]
+    common_centos8_repos: [] # noqa: var-naming[no-role-prefix]
+    # common_yum_enable_repos:
+    #   - my_org_Convert2RHEL_Convert2RHEL{{ ansible_distribution_major_version }}
+    analysis_convert2rhel_preconv_opts: --els
+    analysis_convert2rhel_repos_enabled:
+      - rhel-7-server-els-rpms
+      - rhel-7-server-els-optional-rpms
+      - rhel-7-server-extras-rpms
+      - rhel-7-server-els-satellite-client-6-rpms
+  ansible.builtin.include_role:
+    name: infra.convert2rhel.analysis
+
+- name: Block to create report files on Capsule in /tmp/convert2rhel.
+  delegate_to: localhost
+  block:
+    - name: Report dir exists
+      ansible.builtin.file:
+        path: /tmp/convert2rhel
+        state: directory
+        mode: "0700"
+
+    - name: Create inhibited report
+      ansible.builtin.copy:
+        content: "{{ convert2rhel_inhibitors_txt.stdout }}\n"
+        dest: /tmp/convert2rhel/{{ inventory_hostname }}.txt
+        mode: "0600"
+      when: convert2rhel_inhibitors_txt.stdout is defined
+
+    - name: Create uninhibited report
+      ansible.builtin.copy:
+        content: "No inhibitors found."
+        dest: /tmp/convert2rhel/{{ inventory_hostname }}.txt
+        mode: "0600"
+      when: convert2rhel_inhibitors_txt.stdout is not defined
+
+    - name: Fail if inhibited
+      ansible.builtin.fail:
+        msg: Convert inhibited
+      when: convert2rhel_inhibitors_txt.stdout is defined
+
+...

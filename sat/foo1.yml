@@ -1,0 +1,10 @@
+---
+- name: Test foo
+  hosts: all
+  tasks:
+    - name: Work around convert2rhel cdn.redhat.com timeout issue
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        line: 127.0.0.1 cdn.redhat.com
+        state: absent
+

@@ -1,0 +1,11 @@
+---
+- name: Convert2RHEL Analyze
+  hosts: all
+  gather_facts: true
+  become: true
+  tasks:
+    - name: Include convert2rhel_remediate role
+      ansible.builtin.include_role:
+        name: convert2rhel_remediate
+
+...

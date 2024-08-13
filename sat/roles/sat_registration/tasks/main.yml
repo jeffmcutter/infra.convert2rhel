@@ -1,0 +1,65 @@
+---
+- name: Add foreman-proxy ssh key
+  ansible.posix.authorized_key:
+    user: "{{ ansible_user }}"
+    state: present
+    key: "{{ lookup('file', '/var/lib/foreman-proxy/ssh/id_rsa_foreman_proxy.pub') }}"
+
+- name: Find repo files in /etc/yum.repos.d
+  ansible.builtin.find:
+    paths: /etc/yum.repos.d
+    patterns: "*.repo"
+  register: __repo_files
+
+- name: Backup all repo files in /etc/yum.repos.d
+  ansible.builtin.copy:
+    src: "{{ item.path }}"
+    dest: "{{ item.path }}.bak"
+    owner: root
+    group: root
+    mode: '0600'
+    remote_src: true
+  loop: "{{ __repo_files.files }}"
+  when: item.path != "/etc/yum.repos.d/redhat.repo"
+
+- name: Remove all repo files in /etc/yum.repos.d
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ __repo_files.files }}"
+  when: item.path != "/etc/yum.repos.d/redhat.repo"
+
+- name: Add repository for CentOS from Satellite
+  ansible.builtin.yum_repository:
+    name: base
+    description: CentOS {{ ansible_distribution_major_version }} Repository from Capsule
+    file: CentOS-Base
+    baseurl: "{{ satellite_custom_url }}/CentOS/CentOS_{{ ansible_distribution_major_version }}/"
+    state: present
+    enabled: true
+    gpgcheck: false
+
+- name: Install subscription-manager
+  ansible.builtin.package:
+    name: subscription-manager
+    state: present
+
+- name: Install katello-ca-cert
+  ansible.builtin.package:
+    name: "{{ satellite_katello_ca_cert_url }}"
+    state: present
+
+- name: Remove repository for CentOS from Satellite
+  ansible.builtin.yum_repository:
+    name: base
+    file: CentOS-Base
+    state: absent
+
+- name: Register to Satellite Capsule
+  community.general.redhat_subscription:
+    state: present
+    activationkey: "{{ satellite_activation_key }}"
+    org_id: "{{ satellite_organization }}"
+    force_register: true
+
+...

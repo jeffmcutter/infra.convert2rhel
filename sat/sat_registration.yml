@@ -1,0 +1,11 @@
+---
+- name: Register host to Satellite
+  hosts: all
+  gather_facts: true
+  become: true
+  tasks:
+    - name: Include sat_registration role
+      ansible.builtin.include_role:
+        name: sat_registration
+
+...

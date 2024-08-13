@@ -1,0 +1,37 @@
+---
+- name: Perform OS conversion
+  vars:
+    rhsm_username: ""
+    rhsm_password: ""
+    rhsm_org: ""
+    rhsm_activation_key: ""
+    convert_no_rhsm: false
+    convert_reboot_requested: true
+    common_convert2rhel_repo_satellite: true
+    # common_yum_enable_repos:
+    #   - my_org_Convert2RHEL_Convert2RHEL{{ ansible_distribution_major_version }}
+    common_centos7_repos: [] # noqa: var-naming[no-role-prefix]
+    common_centos8_repos: [] # noqa: var-naming[no-role-prefix]
+    convert_convert2rhel_opts: --els
+    convert_convert2rhel_repos_enabled:
+      - rhel-7-server-els-rpms
+      - rhel-7-server-els-optional-rpms
+      - rhel-7-server-extras-rpms
+      - rhel-7-server-els-satellite-client-6-rpms
+  ansible.builtin.include_role:
+    name: infra.convert2rhel.convert
+
+- name: Re-register to Satellite Capsule using RHEL activation key
+  community.general.redhat_subscription:
+    state: present
+    activationkey: "rhel{{ ansible_distribution_major_version }}_dev"
+    org_id: my_org
+    force_register: true
+
+- name: Work around convert2rhel cdn.redhat.com timeout issue
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    line: 127.0.0.1 cdn.redhat.com
+    state: absent
+
+...

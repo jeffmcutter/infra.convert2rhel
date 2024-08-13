@@ -1,0 +1,29 @@
+---
+common_centos7_repos:
+  - CentOS-Base.repo
+  - CentOS-CR.repo
+  - CentOS-Debuginfo.repo
+  - CentOS-fasttrack.repo
+  - CentOS-Media.repo
+  - CentOS-Sources.repo
+  - CentOS-Vault.repo
+  - CentOS-x86_64-kernel.repo
+common_centos8_repos:
+  - CentOS-Linux-AppStream.repo
+  - CentOS-Linux-BaseOS.repo
+  - CentOS-Linux-ContinuousRelease.repo
+  - CentOS-Linux-Devel.repo
+  - CentOS-Linux-Extras.repo
+  - CentOS-Linux-FastTrack.repo
+  - CentOS-Linux-HighAvailability.repo
+  - CentOS-Linux-Plus.repo
+  - CentOS-Linux-PowerTools.repo
+
+satellite_capsule: satcap1.localdomain.local
+# satellite_custom_url: http://{{ satellite_capsule }}/pulp/content/my_org/Library/custom
+satellite_custom_url: http://sat.localdomain.local/pulp/content/my_org/Library/custom
+satellite_katello_ca_cert_url: http://{{ satellite_capsule }}/pub/katello-ca-consumer-latest.noarch.rpm
+satellite_activation_key: centos7_dev
+satellite_organization: my_org
+
+...
